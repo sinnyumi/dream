@@ -819,17 +819,15 @@ function switchView(viewId, el) {
 
 // ── API 호출 ──
 function callAPI(payload, cb) {
-  fetch(CONFIG.API_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: { 'Content-Type': 'application/json' }
-  })
-  .then(r => r.json())
-  .then(cb)
-  .catch(e => {
-    console.error(e);
-    showToast('❌ 서버 연결 실패\n(API URL을 확인하세요)');
-  });
+  // 구글 앱스크립트는 GET + query string 방식으로 호출해야 CORS 오류 없음
+  const url = CONFIG.API_URL + '?payload=' + encodeURIComponent(JSON.stringify(payload));
+  fetch(url, { method: 'GET', redirect: 'follow' })
+    .then(r => r.json())
+    .then(cb)
+    .catch(e => {
+      console.error(e);
+      showToast('❌ 서버 연결 실패\nAPI URL 또는 배포 설정을 확인하세요');
+    });
 }
 
 // ── 학생 목록 ──
