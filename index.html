@@ -353,7 +353,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);
 <script>
 /* ════ 상태 ════ */
 let role='teacher', user=null;
-let allS=[], selItem=null, allHist=[], histF='all';
+let allS=[], allHist=[], histF='all';
+window.selItem=null; window._picked=null;
 let adminData=null, editRecords=[], editF='all', editRow=null;
 let isMobile=true;
 
@@ -427,8 +428,10 @@ function loginOK(u){
   document.getElementById('LS').style.display='none';
   document.getElementById('APP').style.display='block';
   document.getElementById('ubadge').textContent=({admin:'🔑 ',teacher:'👩‍🏫 ',student:'🎒 '}[u.role])+u.name;
-  chkLayout(); buildNav(); applyLayout();
+  chkLayout(); buildNav();
+  // buildItems 먼저 → 그 다음 applyLayout (DOM 준비 후)
   if(u.role!=='student'){loadS();buildItems();}
+  applyLayout();
   if(u.role==='teacher'){document.getElementById('tId').value=u.id;document.getElementById('tPw').value=u.pw;}
   if(u.role==='admin'){loadDash();loadEditRecords();}
   if(u.role==='student')renderScore(u.sd);
@@ -469,18 +472,21 @@ function sw(id,el){
 function applyLayout(){
   const d2=document.getElementById('d2col');
   const mtabs=document.querySelector('.mtabs');
+  if(!d2)return;
   if(!isMobile){
     d2.style.display='grid';
     if(mtabs)mtabs.style.display='none';
-    document.getElementById('panR').style.display='none';
-    document.getElementById('panP').style.display='none';
-    buildAcc('dR',CONFIG.REWARD_ITEMS,'r');
-    buildAcc('dP',CONFIG.PENALTY_ITEMS,'p');
+    const pR=document.getElementById('panR'), pP=document.getElementById('panP');
+    if(pR)pR.style.display='none';
+    if(pP)pP.style.display='none';
+    if(document.getElementById('dR'))buildAcc('dR',CONFIG.REWARD_ITEMS,'r');
+    if(document.getElementById('dP'))buildAcc('dP',CONFIG.PENALTY_ITEMS,'p');
   } else {
     d2.style.display='none';
     if(mtabs)mtabs.style.display='';
-    document.getElementById('panR').classList.toggle('on',curTab==='r');
-    document.getElementById('panP').classList.toggle('on',curTab==='p');
+    const pR=document.getElementById('panR'), pP=document.getElementById('panP');
+    if(pR)pR.classList.toggle('on',curTab==='r');
+    if(pP)pP.classList.toggle('on',curTab==='p');
   }
 }
 
@@ -527,7 +533,7 @@ function buildAcc(cid,items,type){
 function mkAcc(title,items,type,open){
   const btns=items.map(item=>{
     const lb=item.limit?`<span class="lbadge">월${item.limit}점</span>`:'';
-    return `<button class="ibtn" onclick="selItem(this,'${esc(item.value)}',${item.score},'${type}')" data-v="${esc(item.value)}">
+    return `<button class="ibtn" onclick="pickItem(this,'${esc(item.value)}',${item.score},'${type}')" data-v="${esc(item.value)}">
       <span>${item.label}${lb}</span><span class="sc ${item.score>0?'pos':'neg'}">${item.score>0?'+'+item.score:item.score}</span>
     </button>`;
   }).join('');
@@ -536,14 +542,12 @@ function mkAcc(title,items,type,open){
 }
 function esc(s){return s.replace(/'/g,"\\'")}
 function togAcc(h){h.classList.toggle('op');h.nextElementSibling.classList.toggle('op');}
-function selItem(btn,v,sc,type){
+function pickItem(btn,v,sc,type){
   document.querySelectorAll('.ibtn').forEach(b=>b.classList.remove('sr','sp'));
-  if(selItem._v===v){selItem._v=null;selItem=null;updSum();return;}
-  selItem._v=v;
-  document.querySelectorAll(`.ibtn[data-v="${esc(v)}"]`).forEach(b=>b.classList.add(type==='r'?'sr':'sp'));
-  window.selItem=Object.assign(selItem,{value:v,score:sc,type});
-  // selItem 재정의 방지
-  window.selItem={value:v,score:sc,type,_v:v};
+  if(window._picked===v){window._picked=null;window.selItem=null;updSum();return;}
+  window._picked=v;
+  document.querySelectorAll('.ibtn[data-v="'+esc(v)+'"]').forEach(b=>b.classList.add(type==='r'?'sr':'sp'));
+  window.selItem={value:v,score:sc,type};
   updSum();
 }
 function updSum(){
