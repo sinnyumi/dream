@@ -409,8 +409,9 @@ function login(){
   const id=document.getElementById('lid').value.trim(), pw=document.getElementById('lpw').value.trim();
   if(!id||!pw)return toast('아이디와 비밀번호를 입력하세요');
   if(role==='admin'){
-    if(id===CONFIG.ADMIN_ID&&pw===CONFIG.ADMIN_PW)loginOK({role:'admin',name:'관리자',id});
-    else toast('❌ 관리자 인증 실패'); return;
+    if(id===CONFIG.ADMIN_ID&&pw===CONFIG.ADMIN_PW){ loginOK({role:'admin',name:'관리자',id}); }
+    else { toast('❌ 관리자 인증 실패'); }
+    return;
   }
   if(role==='teacher'){
     api({action:'authTeacher',teacherId:id,teacherPw:pw},r=>{
@@ -437,7 +438,7 @@ function loginOK(u){
   if(u.role==='student')renderScore(u.sd);
 }
 function logout(){
-  user=null; allS=[]; selItem=null;
+  user=null; allS=[]; window.selItem=null; window._picked=null;
   document.getElementById('APP').style.display='none';
   document.getElementById('LS').style.display='flex';
   document.getElementById('lid').value=''; document.getElementById('lpw').value='';
