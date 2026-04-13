@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>드림포인트</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <style>
+    /* ── 전역 변수 & 리셋 ── */
+    :root {
+      --primary:   #2563eb;
+      --secondary: #0ea5e9;
+      --success:   #16a34a;
+      --danger:    #dc2626;
+      --bg:        #f0f4ff;
+      --card:      #ffffff;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --border:    #e2e8f0;
+      --radius:    14px;
+      --shadow:    0 4px 24px rgba(37,99,235,.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── 로그인 화면 ── */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e40af 0%, #0ea5e9 100%);
+    }
+    .login-box {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      animation: fadeUp .4s ease;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .login-logo .icon { font-size: 2.8rem; display: block; margin-bottom: 8px; }
+    .login-logo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    .login-logo p { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+    .role-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .role-tab {
+      flex: 1;
+      padding: 9px 4px;
+      text-align: center;
+      border-radius: 9px;
+      font-size: .75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .2s;
+      border: none;
+      background: transparent;
+    }
+    .role-tab.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { font-size: .78rem; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; height: 48px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--primary); }
+
+    .btn-primary {
+      width: 100%; height: 50px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .2s, transform .1s;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary:active { transform: scale(.98); }
+
+    /* ── 앱 레이아웃 ── */
+    #app { display: none; min-height: 100vh; }
+
+    /* ── 헤더 ── */
+    .app-header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.05);
+    }
+    .app-header .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .app-header .logo span { color: var(--muted); font-size: .75rem; font-weight: 500; margin-left: 6px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-badge {
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .btn-logout {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: .73rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* ── 하단 탭 내비 ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px;
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: inherit;
+      gap: 3px;
+      transition: color .2s;
+    }
+    .nav-item .nav-icon { font-size: 1.3rem; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active .nav-icon { filter: drop-shadow(0 0 4px rgba(37,99,235,.4)); }
+
+    /* ── 메인 콘텐츠 ── */
+    .main-content {
+      padding: 20px 16px 90px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ── 뷰(탭) ── */
+    .view { display: none; animation: fadeUp .3s ease; }
+    .view.active { display: block; }
+
+    /* ── 카드 ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── 섹션 제목 ── */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 14px;
+      margin-top: 4px;
+    }
+
+    /* ── 통계 그리드 ── */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stat-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .stat-box .stat-label { font-size: .72rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    .stat-box .stat-val { font-size: 1.6rem; font-weight: 900; color: var(--primary); }
+    .stat-box.green .stat-val { color: var(--success); }
+    .stat-box.red .stat-val { color: var(--danger); }
+
+    /* ── 학생 검색 & 체크리스트 ── */
+    .search-input {
+      width: 100%;
+      height: 44px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .student-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafbff;
+    }
+    .student-item {
+      display: flex;
+      align-items: center;
+      padding: 9px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      gap: 10px;
+      transition: background .15s;
+    }
+    .student-item:last-child { border-bottom: none; }
+    .student-item:hover { background: #f0f4ff; }
+    .student-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; }
+    .student-item .sid { font-size: .72rem; color: var(--muted); }
+    .student-item .sname { font-size: .88rem; font-weight: 700; }
+
+    /* ── 항목 선택 ── */
+    .item-group-label {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      background: #f8fafc;
+      color: var(--muted);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      margin-top: 4px;
+    }
+    .item-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      background: white;
+      font-family: inherit;
+      font-size: .83rem;
+      color: var(--text);
+      width: 100%;
+      text-align: left;
+      transition: all .15s;
+    }
+    .item-btn:hover { border-color: var(--primary); background: #eff6ff; }
+    .item-btn.selected-reward { border-color: var(--success); background: #f0fdf4; }
+    .item-btn.selected-penalty { border-color: var(--danger); background: #fff1f2; }
+    .item-btn .score-badge {
+      font-size: .8rem;
+      font-weight: 900;
+      min-width: 36px;
+      text-align: right;
+    }
+    .score-badge.pos { color: var(--success); }
+    .score-badge.neg { color: var(--danger); }
+
+    /* ── 선택 요약 배지 ── */
+    .summary-bar {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .summary-bar .sum-text { font-size: .82rem; font-weight: 700; color: var(--primary); }
+    .summary-bar .sum-score { font-size: 1.1rem; font-weight: 900; }
+
+    /* ── 기록 저장 버튼 ── */
+    .btn-save {
+      width: 100%;
+      height: 52px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 16px rgba(37,99,235,.3);
+    }
+    .btn-save:active { transform: scale(.98); }
+    .btn-save:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* ── 기록 내역 ── */
+    .record-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: #fafbff;
+      border: 1px solid var(--border);
+    }
+    .record-item .rec-info .rec-name { font-size: .9rem; font-weight: 700; }
+    .record-item .rec-info .rec-meta { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+    .record-item .rec-right { text-align: right; }
+    .record-item .rec-score { font-size: 1rem; font-weight: 900; }
+    .rec-score.pos { color: var(--success); }
+    .rec-score.neg { color: var(--danger); }
+    .btn-del {
+      font-size: .7rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      background: none;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 4px;
+    }
+
+    /* ── 학생 점수 화면 ── */
+    .score-hero {
+      background: linear-gradient(135deg, #1e40af, #0ea5e9);
+      border-radius: 18px;
+      padding: 28px 20px;
+      text-align: center;
+      color: white;
+      margin-bottom: 14px;
+    }
+    .score-hero .hero-name { font-size: .9rem; opacity: .8; margin-bottom: 6px; }
+    .score-hero .hero-score { font-family: 'Syne', sans-serif; font-size: 3.2rem; font-weight: 800; }
+    .score-hero .hero-label { font-size: .8rem; opacity: .7; margin-top: 2px; }
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: .83rem;
+    }
+    .score-row:last-child { border-bottom: none; }
+    .score-row .row-date { color: var(--muted); font-size: .75rem; }
+    .score-row .row-reason { flex: 1; margin: 0 8px; }
+    .score-row .row-score { font-weight: 900; }
+
+    /* ── 관리자 통계 ── */
+    .rank-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      gap: 10px;
+    }
+    .rank-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--bg);
+      font-size: .75rem;
+      font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .rank-num.gold { background: #fef3c7; color: #d97706; }
+    .rank-num.silver { background: #f1f5f9; color: #64748b; }
+    .rank-num.bronze { background: #fff7ed; color: #c2410c; }
+    .rank-name { flex: 1; font-size: .88rem; font-weight: 700; }
+    .rank-score { font-size: .95rem; font-weight: 900; color: var(--primary); }
+
+    /* ── 빈 상태 ── */
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; opacity: .4; }
+
+    /* ── 교사 인증 섹션 ── */
+    .teacher-auth {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .teacher-auth input {
+      flex: 1;
+      height: 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .teacher-auth input:focus { border-color: var(--primary); }
+
+    /* ── 탭 필터 ── */
+    .tab-filter {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-size: .75rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--muted);
+      transition: all .15s;
+    }
+    .tab-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* ── 유틸 ── */
+    .mt8 { margin-top: 8px; }
+    .mb12 { margin-bottom: 12px; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hidden { display: none !important; }
+    .loading-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 토스트 ── */
+    #toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e293b;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: .85rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      white-space: pre-line;
+      text-align: center;
+      max-width: 90vw;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── 반응형 ── */
+    @media (max-width: 360px) {
+      .stat-box .stat-val { font-size: 1.3rem; }
+      .score-hero .hero-score { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ 로그인 ══════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="icon">🏫</span>
+      <h1 id="loginTitle">드림포인트</h1>
+      <p id="loginSubtitle">학생 상벌점 관리 시스템</p>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="setRole('admin')" id="tabAdmin">🔑 관리자</button>
+      <button class="role-tab" onclick="setRole('teacher')" id="tabTeacher">👩‍🏫 교사</button>
+      <button class="role-tab" onclick="setRole('student')" id="tabStudent">🎒 학생</button>
+    </div>
+
+    <div class="form-group">
+      <label id="loginIdLabel">아이디</label>
+      <input type="text" id="loginId" placeholder="아이디 입력" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>비밀번호</label>
+      <input type="password" id="loginPw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" onclick="doLogin()" id="loginBtn">로그인 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════ 앱 ══════════════════ -->
+<div id="app">
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="logo" id="appLogo">드림포인트</div>
+    <div class="header-right">
+      <div class="user-badge" id="userBadge"></div>
+      <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+  </header>
+
+  <!-- 메인 -->
+  <main class="main-content">
+
+    <!-- ── 교사 뷰: 상벌점 입력 ── -->
+    <div class="view active" id="viewInput">
+      <p class="section-title">✏️ 상벌점 입력</p>
+
+      <!-- 교사 인증 (학생 뷰에서는 숨김) -->
+      <div id="teacherAuthArea">
+        <div class="card">
+          <div class="card-title">교사 인증</div>
+          <div class="teacher-auth">
+            <input type="text" id="tId" placeholder="교사 ID">
+            <input type="password" id="tPw" placeholder="비밀번호">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">학생 선택</div>
+        <input class="search-input" type="text" id="searchInput" placeholder="이름 또는 학번 검색" oninput="filterStudents()">
+        <div class="student-list" id="studentList"><div class="empty-state"><span class="empty-icon">⏳</span>목록 로딩 중…</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">상점 항목</div>
+        <div id="rewardItems"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">벌점 항목</div>
+        <div id="penaltyItems"></div>
+      </div>
+
+      <div class="summary-bar" id="summaryBar">
+        <div class="sum-text" id="sumText">학생·항목을 선택하세요</div>
+        <div class="sum-score" id="sumScore" style="color:var(--muted)">0점</div>
+      </div>
+
+      <button class="btn-save" id="btnSave" onclick="saveRecord()">💾 기록하기</button>
+    </div>
+
+    <!-- ── 교사 뷰: 내 기록 ── -->
+    <div class="view" id="viewHistory">
+      <p class="section-title">📋 내 입력 기록</p>
+      <div class="tab-filter">
+        <button class="tab-btn active" onclick="filterHistory('all',this)">전체</button>
+        <button class="tab-btn" onclick="filterHistory('reward',this)">상점</button>
+        <button class="tab-btn" onclick="filterHistory('penalty',this)">벌점</button>
+      </div>
+      <div id="historyList"><div class="empty-state"><span class="empty-icon">📭</span>기록이 없습니다</div></div>
+    </div>
+
+    <!-- ── 학생 뷰: 내 점수 ── -->
+    <div class="view" id="viewMyScore">
+      <p class="section-title">🏆 나의 드림포인트</p>
+      <div id="myScoreContent">
+        <div class="card">
+          <div class="card-title">학번 & 비밀번호로 조회</div>
+          <div class="form-group">
+            <label>학번</label>
+            <input type="text" id="sSid" placeholder="학번 입력">
+          </div>
+          <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" id="sSpw" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')searchStudent()">
+          </div>
+          <button class="btn-save" onclick="searchStudent()">조회하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 관리자 뷰: 통계 대시보드 ── -->
+    <div class="view" id="viewDash">
+      <p class="section-title">📊 전체 현황</p>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-label">전체 기록수</div>
+          <div class="stat-val" id="statTotal">-</div>
+        </div>
+        <div class="stat-box green">
+          <div class="stat-label">상점 합계</div>
+          <div class="stat-val" id="statReward">-</div>
+        </div>
+        <div class="stat-box red">
+          <div class="stat-label">벌점 합계</div>
+          <div class="stat-val" id="statPenalty">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">참여 학생수</div>
+          <div class="stat-val" id="statStudents">-</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏆 상위 학생 (누적 상점)</div>
+        <div id="rankList"><div class="empty-state"><span class="empty-icon">⏳</span>로딩 중…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 최근 50건 기록</div>
+        <div id="allRecordList"><div class="empty-state"><span class="empty-icon">⏳</span>로딩 중…</div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 하단 탭 -->
+  <nav class="bottom-nav" id="bottomNav"></nav>
+</div>
+
+<!-- 토스트 -->
+<div id="toast"></div>
+
+<!-- ══════════════════ 스크립트 ══════════════════ -->
+<script>
+// ── 상태 ──
+let currentRole = 'admin';
+let currentUser = null;
+let allStudents = [];
+let selectedItem = null;
+let allHistory = [];
+let historyFilter = 'all';
+
+// ── 테마 적용 ──
+(function applyTheme() {
+  const t = CONFIG.THEME;
+  const r = document.documentElement.style;
+  r.setProperty('--primary',   t.primary);
+  r.setProperty('--secondary', t.secondary);
+  r.setProperty('--success',   t.success);
+  r.setProperty('--danger',    t.danger);
+  r.setProperty('--bg',        t.bg);
+  r.setProperty('--card',      t.card);
+  r.setProperty('--text',      t.text);
+  r.setProperty('--muted',     t.muted);
+  document.getElementById('loginTitle').textContent = CONFIG.SYSTEM_NAME;
+  document.getElementById('loginSubtitle').textContent = CONFIG.SYSTEM_SUBTITLE;
+})();
+
+// ── 역할 탭 ──
+function setRole(role) {
+  currentRole = role;
+  ['admin','teacher','student'].forEach(r => {
+    document.getElementById('tab'+r.charAt(0).toUpperCase()+r.slice(1)).classList.toggle('active', r===role);
+  });
+  document.getElementById('loginIdLabel').textContent = role === 'student' ? '학번' : '아이디';
+}
+
+// ── 로그인 ──
+function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+  if (!id || !pw) return showToast('아이디와 비밀번호를 입력하세요');
+
+  if (currentRole === 'admin') {
+    if (id === CONFIG.ADMIN_ID && pw === CONFIG.ADMIN_PW) {
+      loginSuccess({ role: 'admin', name: '관리자', id });
+    } else {
+      showToast('❌ 관리자 인증 실패');
+    }
+    return;
+  }
+
+  if (currentRole === 'teacher') {
+    // 교사 인증은 API로
+    callAPI({ action: 'authTeacher', teacherId: id, teacherPw: pw }, res => {
+      if (res.success) loginSuccess({ role: 'teacher', name: res.name || id, id, pw });
+      else showToast('❌ ' + (res.error || '교사 인증 실패'));
+    });
+    return;
+  }
+
+  if (currentRole === 'student') {
+    callAPI({ action: 'getStudentScore', id, pw }, res => {
+      if (res.error) { showToast('❌ ' + res.error); return; }
+      loginSuccess({ role: 'student', name: res.name, id, pw, scoreData: res });
+    });
+  }
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('userBadge').textContent =
+    (user.role === 'admin' ? '🔑 ' : user.role === 'teacher' ? '👩‍🏫 ' : '🎒 ') + user.name;
+  setupNav();
+  if (user.role === 'teacher') {
+    document.getElementById('tId').value = user.id;
+    document.getElementById('tPw').value = user.pw;
+    loadStudents();
+    buildItemButtons();
+  } else if (user.role === 'student') {
+    setupStudentView(user.scoreData);
+  } else if (user.role === 'admin') {
+    loadAdminDash();
+    loadStudents();
+    buildItemButtons();
+  }
+}
+
+function doLogout() {
+  currentUser = null; allStudents = []; selectedItem = null; allHistory = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPw').value = '';
+}
+
+// ── 네비게이션 설정 ──
+const NAV_TEACHER = [
+  { id: 'viewInput',   icon: '✏️', label: '입력' },
+  { id: 'viewHistory', icon: '📋', label: '내 기록' },
+];
+const NAV_ADMIN = [
+  { id: 'viewDash',    icon: '📊', label: '통계' },
+  { id: 'viewInput',   icon: '✏️', label: '입력' },
+  { id: 'viewHistory', icon: '📋', label: '기록' },
+];
+const NAV_STUDENT = [
+  { id: 'viewMyScore', icon: '🏆', label: '내 점수' },
+];
+
+function setupNav() {
+  const nav = document.getElementById('bottomNav');
+  const role = currentUser.role;
+  const items = role === 'admin' ? NAV_ADMIN : role === 'teacher' ? NAV_TEACHER : NAV_STUDENT;
+  nav.innerHTML = items.map(n => `
+    <button class="nav-item" onclick="switchView('${n.id}',this)">
+      <span class="nav-icon">${n.icon}</span>${n.label}
+    </button>`).join('');
+
+  // 기본 뷰 설정
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const defaultView = items[0].id;
+  document.getElementById(defaultView)?.classList.add('active');
+  nav.querySelector('.nav-item')?.classList.add('active');
+
+  // 교사인증 영역: 학생 뷰에서는 숨김
+  document.getElementById('teacherAuthArea').classList.toggle('hidden', role === 'student');
+}
+
+function switchView(viewId, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  if (viewId === 'viewHistory') loadHistory();
+  if (viewId === 'viewDash') loadAdminDash();
+}
+
+// ── API 호출 ──
+function callAPI(payload, cb) {
+  fetch(CONFIG.API_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(cb)
+  .catch(e => {
+    console.error(e);
+    showToast('❌ 서버 연결 실패\n(API URL을 확인하세요)');
+  });
+}
+
+// ── 학생 목록 ──
+function loadStudents() {
+  callAPI({ action: 'getAllStudents' }, res => {
+    if (res.students) {
+      allStudents = res.students;
+      renderStudentList(allStudents);
+    }
+  });
+}
+
+function renderStudentList(arr) {
+  const el = document.getElementById('studentList');
+  if (!arr.length) { el.innerHTML = '<div class="empty-state"><span class="empty-icon">👥</span>학생 없음</div>'; return; }
+  el.innerHTML = arr.map(s => `
+    <div class="student-item" onclick="toggleStudent(this)">
+      <input type="checkbox" class="schk" value="${s.id}" data-name="${s.name}" onclick="event.stopPropagation()">
+      <div>
+        <div class="sname">${s.name}</div>
+        <div class="sid">${s.id}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterStudents() {
+  const v = document.getElementById('searchInput').value.toLowerCase();
+  renderStudentList(allStudents.filter(s => s.id.includes(v) || s.name.includes(v)));
+}
+
+function toggleStudent(el) {
+  const chk = el.querySelector('.schk');
+  chk.checked = !chk.checked;
+  updateSummary();
+}
+
+// ── 항목 버튼 생성 ──
+function buildItemButtons() {
+  buildItems('rewardItems', CONFIG.REWARD_ITEMS, 'reward');
+  buildItems('penaltyItems', CONFIG.PENALTY_ITEMS, 'penalty');
+}
+
+function buildItems(containerId, items, type) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = items.map(item => `
+    <button class="item-btn" onclick="selectItem(this,'${escStr(item.value)}',${item.score},'${type}')" data-value="${escStr(item.value)}" data-score="${item.score}" data-limit="${item.limit||''}">
+      <span>${item.label}</span>
+      <span class="score-badge ${item.score > 0 ? 'pos':'neg'}">${item.score > 0 ? '+'+item.score : item.score}</span>
+    </button>`).join('');
+}
+
+function escStr(s) { return s.replace(/'/g, "\\'"); }
+
+function selectItem(btn, value, score, type) {
+  document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('selected-reward','selected-penalty'));
+  if (selectedItem && selectedItem.value === value) { selectedItem = null; updateSummary(); return; }
+  btn.classList.add('selected-' + type);
+  selectedItem = { value, score, type };
+  updateSummary();
+}
+
+// ── 요약 업데이트 ──
+function updateSummary() {
+  const chks = document.querySelectorAll('.schk:checked');
+  const cnt = chks.length;
+  const sc = selectedItem ? selectedItem.score : 0;
+  const sumEl = document.getElementById('sumScore');
+  const txtEl = document.getElementById('sumText');
+  if (cnt === 0 || !selectedItem) {
+    txtEl.textContent = '학생·항목을 선택하세요';
+    sumEl.textContent = '0점';
+    sumEl.style.color = 'var(--muted)';
+    return;
+  }
+  txtEl.textContent = `${cnt}명 × ${selectedItem.value}`;
+  sumEl.textContent = (sc > 0 ? '+' : '') + sc + '점';
+  sumEl.style.color = sc > 0 ? 'var(--success)' : 'var(--danger)';
+}
+
+// ── 기록 저장 ──
+function saveRecord() {
+  const tId = document.getElementById('tId').value.trim();
+  const tPw = document.getElementById('tPw').value.trim();
+  const chks = document.querySelectorAll('.schk:checked');
+
+  if (currentUser.role === 'teacher' && (!tId || !tPw)) return showToast('교사 ID/PW를 입력하세요');
+  if (!chks.length) return showToast('학생을 선택하세요');
+  if (!selectedItem) return showToast('항목을 선택하세요');
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>처리 중…';
+
+  callAPI({
+    action: 'saveBatchData',
+    teacherId: tId || CONFIG.ADMIN_ID,
+    teacherPw: tPw || CONFIG.ADMIN_PW,
+    reason: selectedItem.value,
+    score: selectedItem.score,
+    students: Array.from(chks).map(c => ({ id: c.value, name: c.dataset.name }))
+  }, res => {
+    btn.disabled = false;
+    btn.textContent = '💾 기록하기';
+    showToast(res.message || res);
+    // 초기화
+    document.querySelectorAll('.schk:checked').forEach(c => c.checked = false);
+    document.querySelectorAll('.item-btn').forEach(b => b.classList.remove('selected-reward','selected-penalty'));
+    selectedItem = null;
+    document.getElementById('searchInput').value = '';
+    renderStudentList(allStudents);
+    updateSummary();
+  });
+}
+
+// ── 기록 조회 ──
+function loadHistory() {
+  const tId = document.getElementById('tId').value.trim();
+  const tPw = document.getElementById('tPw').value.trim();
+  if (currentUser.role === 'teacher' && (!tId || !tPw)) {
+    document.getElementById('historyList').innerHTML = '<div class="empty-state"><span class="empty-icon">🔑</span>교사 정보를 먼저 입력하세요</div>';
+    return;
+  }
+  document.getElementById('historyList').innerHTML = '<div class="empty-state"><span class="empty-icon">⏳</span>불러오는 중…</div>';
+  callAPI({ action: 'getTeacherHistory', teacherId: tId || CONFIG.ADMIN_ID, teacherPw: tPw || CONFIG.ADMIN_PW }, res => {
+    if (res.error) { showToast('❌ ' + res.error); return; }
+    allHistory = res.history || [];
+    renderHistory();
+  });
+}
+
+function filterHistory(f, el) {
+  historyFilter = f;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  let list = allHistory;
+  if (historyFilter === 'reward') list = list.filter(h => h.score > 0);
+  if (historyFilter === 'penalty') list = list.filter(h => h.score < 0);
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>기록이 없습니다</div>'; return; }
+  el.innerHTML = list.map(h => `
+    <div class="record-item">
+      <div class="rec-info">
+        <div class="rec-name">${h.studentName} <span style="color:var(--muted);font-size:.72rem">(${h.studentId})</span></div>
+        <div class="rec-meta">${h.date} · ${h.reason}</div>
+      </div>
+      <div class="rec-right">
+        <div class="rec-score ${h.score > 0 ? 'pos':'neg'}">${h.score > 0 ? '+'+h.score : h.score}점</div>
+        <button class="btn-del" onclick="delRecord('${h.date}','${h.studentId}','${h.studentName}')">취소</button>
+      </div>
+    </div>`).join('');
+}
+
+function delRecord(date, sId, sName) {
+  if (!confirm(`[${date}] ${sName} 학생의 기록을 취소하시겠습니까?`)) return;
+  const tId = document.getElementById('tId').value.trim();
+  const tPw = document.getElementById('tPw').value.trim();
+  callAPI({ action: 'deleteRecord', date, studentId: sId, teacherId: tId || CONFIG.ADMIN_ID, teacherPw: tPw || CONFIG.ADMIN_PW }, res => {
+    showToast(res.message || res);
+    loadHistory();
+  });
+}
+
+// ── 학생 점수 조회 ──
+function searchStudent() {
+  const sid = document.getElementById('sSid').value.trim();
+  const spw = document.getElementById('sSpw').value.trim();
+  if (!sid || !spw) return showToast('학번과 비밀번호를 입력하세요');
+  callAPI({ action: 'getStudentScore', id: sid, pw: spw }, res => {
+    if (res.error) { showToast('❌ ' + res.error); return; }
+    setupStudentView(res);
+  });
+}
+
+function setupStudentView(data) {
+  const el = document.getElementById('myScoreContent');
+  const history = data.history || [];
+  el.innerHTML = `
+    <div class="score-hero">
+      <div class="hero-name">${data.name} 학생</div>
+      <div class="hero-score">${data.total}점</div>
+      <div class="hero-label">누적 드림포인트</div>
+    </div>
+    <div class="card">
+      <div class="card-title">상세 내역</div>
+      ${history.length ? history.map(x => `
+        <div class="score-row">
+          <span class="row-date">${x.date}</span>
+          <span class="row-reason">${x.reason}</span>
+          <span class="row-score ${parseFloat(x.score) >= 0 ? 'rec-score pos':'rec-score neg'}">${x.score}</span>
+        </div>`).join('') : '<div class="empty-state"><span class="empty-icon">📭</span>기록 없음</div>'}
+    </div>`;
+}
+
+// ── 관리자 대시보드 ──
+function loadAdminDash() {
+  callAPI({ action: 'getAdminStats', adminId: CONFIG.ADMIN_ID, adminPw: CONFIG.ADMIN_PW }, res => {
+    if (res.error) { showToast('❌ ' + res.error); return; }
+
+    document.getElementById('statTotal').textContent = res.totalCount || 0;
+    document.getElementById('statReward').textContent = res.totalReward || 0;
+    document.getElementById('statPenalty').textContent = Math.abs(res.totalPenalty || 0);
+    document.getElementById('statStudents').textContent = res.studentCount || 0;
+
+    // 랭킹
+    const rankEl = document.getElementById('rankList');
+    const ranks = res.topStudents || [];
+    if (!ranks.length) { rankEl.innerHTML = '<div class="empty-state"><span class="empty-icon">🏆</span>데이터 없음</div>'; }
+    else rankEl.innerHTML = ranks.map((s, i) => `
+      <div class="rank-item">
+        <div class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+        <div class="rank-name">${s.name} <span style="color:var(--muted);font-size:.72rem">(${s.id})</span></div>
+        <div class="rank-score">${s.total}점</div>
+      </div>`).join('');
+
+    // 전체 기록
+    const recEl = document.getElementById('allRecordList');
+    const recs = res.recentRecords || [];
+    if (!recs.length) { recEl.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>기록 없음</div>'; }
+    else recEl.innerHTML = recs.map(h => `
+      <div class="record-item">
+        <div class="rec-info">
+          <div class="rec-name">${h.studentName} <span style="color:var(--muted);font-size:.72rem">(${h.studentId})</span></div>
+          <div class="rec-meta">${h.date} · ${h.reason} · 교사: ${h.teacherId}</div>
+        </div>
+        <div class="rec-right">
+          <div class="rec-score ${h.score > 0 ? 'pos':'neg'}">${h.score > 0 ? '+'+h.score : h.score}점</div>
+        </div>
+      </div>`).join('');
+  });
+}
+
+// ── 토스트 ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
